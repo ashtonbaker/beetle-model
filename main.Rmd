@@ -1,0 +1,175 @@
+---
+title: "Revisiting the "
+author: "Ashton Baker"
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+---
+
+\newcommand\prob[1]{\mathbb{P}\left[{#1}\right]}
+\newcommand\expect[1]{\mathbb{E}\left[{#1}\right]}
+\newcommand\var[1]{\mathrm{Var}\left[{#1}\right]}
+\newcommand\dist[2]{\mathrm{#1}\left(#2\right)}
+\newcommand\dlta[1]{{\Delta}{#1}}
+\newcommand\lik{\mathcal{L}}
+\newcommand\loglik{\ell}
+
+[Licensed under the Creative Commons Attribution-NonCommercial license](http://creativecommons.org/licenses/by-nc/4.0/).
+Please share and remix noncommercially, mentioning its origin.  
+
+
+```{r knitr-opts,include=FALSE,purl=FALSE}
+library(knitr)
+prefix <- "mif"
+opts_chunk$set(
+  progress=TRUE,
+  prompt=FALSE,
+  tidy=FALSE,
+  highlight=TRUE,
+  strip.white=TRUE,
+  warning=FALSE,
+  message=FALSE,
+  error=FALSE,
+  echo=TRUE,
+  cache=TRUE,
+  cache.extra=rand_seed,
+  results='markup',
+  fig.show='asis',
+  size='small',
+  fig.path=paste0("figure/",prefix,"-"),
+  cache.path=paste0("cache/",prefix,"-"),
+  fig.align='center',
+  fig.height=4,fig.width=6.83,
+  dpi=100,
+  dev='png',
+  dev.args=list(bg='transparent')
+)
+options(keep.source=TRUE,encoding="UTF-8")
+```
+
+----------------------------
+
+## Introduction
+In this tutorial, we will cover the implementation of models used in Dennis et al. (2001) using the **pomp** software package.
+
+
+## apsdif
+
+```{r prelims, include = TRUE, purl=FALSE}
+library(ggplot2)
+library(plyr)
+library(reshape2)
+library(pomp)
+library(magrittr)
+library(reshape2)
+library(foreach)
+stopifnot(packageVersion("pomp")>="1.8")
+set.seed(557976883)
+```
+
+We begin by importing the data for the experiment. We will initially load only the data for rep 4 into the **pomp** object. Later, we will describe a function that incorporates all of the data to estimate parameters.
+
+```{r lpa-data, include = TRUE}
+read.csv("./data/data.csv") %>%subset(weeks <= 40, select=c(weeks,rep,L_obs,P_obs,A_obs)) -> dat
+head(dat)
+```
+
+
+```{r lpa-model, include = TRUE}
+LPA_model <- pomp(data = subset(dat, rep==4),
+              times = "weeks", t0 = 0);
+```
+
+## LPA model
+Individuals are categorized as either larvae, pupae, or adults. At time $t$, the number of each is given by $L_t$, $P_t$ and $A_t$, respectively. The time unit is 2 weeks, which is the average amount of time spent in the larval stage in this experiment.
+
+Eggs are produced at a rate proportional to the number of adults. Eggs are cannibalized by larvae at a rate $c_{el}$, and by adults at a rate $c_{ea}$. So, the probability of an egg surviving 1 time unit in the presence of $L$ larvae is $\exp(-c_{el}L)$. Likewise, the probability of an egg surving 1 time unit in the presence of $A$ adults is $\exp(-c_{ea}A)$.
+
+Larvae have a mortality rate of $\mu_l$ over the course of 2 weeks. If they survive, we assume they become pupae. Pupae are cannibalized by adults at a rate of $-c_{pa}$. So the probability that a pupa will survive 1 time unit in the presence of A adults is $\exp(-c_{pa} A)$. If they survive, we assume they become adults. - Adults have a mortality rate of $\mu_A$ over the course of 1 time unit.
+
+Thus, the full LPA model is
+
+$$\begin{aligned}
+L_t &= b A_{t-1} \exp{(-c_{el} L_{t-1} - c_{ea} A_{t-1})} \\
+P_t &= L_{t-1} (1 - \mu_1) \\
+A_t &= P_{t-1} \exp{(-c_{pa} A_{t-1})} + A_{t-1}(1 - \mu_a)
+\end{aligned}$$
+
+We can use this as the deterministic skeleton of a **pomp** model:
+
+```{r lpa-skeleton, include = TRUE}
+skel <- Csnippet(' DL = b * A * exp(-cel * L - cea * A);
+                   DP = L * (1 - ul);
+                   DA = P * exp(-cpa * A) + A * (1 - ua);');
+LPA_model <- pomp(LPA_model,
+    skeleton = map(skel, delta.t=2),
+    statenames = c('L', 'P', 'A'),
+    paramnames = c('b', 'cel', 'cea', 'cpa', 'ua', 'ul'));
+```
+
+Each experimental repetition was initialized by placing 250 larvae, 5 pupae, and 100 adults in a jar. So we simply initialize our process with the following `Csnippet`:
+
+```{r lpa-init, include=TRUE}
+init <- Csnippet(' L = 250;
+                   P = 5;
+                   A = 100;');
+
+LPA_model <- pomp(LPA_model, initializer = init, statenames = c('L', 'P', 'A'))
+```
+
+We can take the maximum likelihood (ML) estimates for the parameters from the paper, and then we have enough to compute trajectories of the deterministic skeleton:
+
+```{r lpa-ml, include=TRUE}
+ml_estimate <- c(b = 10.67, cel = 0.01647, cea = 0.01313, cpa = 0.01313, ua = 0.007629, ul = 0.1955)
+
+plot(L~time, data=trajectory(LPA_model, params = ml_estimate, as.data.frame = TRUE), type = 'l')
+plot(P~time, data=trajectory(LPA_model, params = ml_estimate, as.data.frame = TRUE), type = 'l')
+plot(A~time, data=trajectory(LPA_model, params = ml_estimate, as.data.frame = TRUE), type = 'l')
+```
+
+## Stochastic Demographic LPA Model
+
+To incorporate stochasticity to our model, we need to specify a function for $f_{X_n | X_{n - 1}}$. Dennis et al begin with the LPA model specified above, and modify it as follows.
+
+* $L_t$ is Poisson distributed with mean $b a_{t-1} \exp{(-c_{el} l_{t-1} - c_{ea} a_{t-1})}$.
+* Each larva is given a probability $(1 - \mu_l)$ of surviving a 2-week period, at which point we assume it becomes a pupa. Therefore, $P_t$ is binomial distributed with $n = l_{t-1}$ and $p = (1 - \mu_l)$.
+* Over a 2-week period, we assume that each pupa either survives to become an adult, or dies. Since pupae are cannibalized by adults, the survival probaility is $\exp(-c_{pa}a_{t-1})$. The survivors are called "recruits", and given by $R_t$.
+* Over a 2-week period, we assume that adult beetles survive with probability $(1 - \mu_a)$. Thus, the number of survivors $S_t$ is binomially distributed.
+
+$$\begin{aligned}
+L_t &= \text{Poisson}(ba_{t-1} \exp[-c_{el}l_{t-1} - c_{ea}a_{t-1}])\\
+P_t &= \text{binomial}(l_{t - 1}, (1 - \mu_l)) \\
+R_t &= \text{binomial}(p_{t-1}, \exp[-c_{pa}a_{t-1}]) \\
+S_t &= \text{binomial}(a_{t-1}, [1 - \mu_a]) \\
+A_t &= R_t + S_t
+\end{aligned}$$
+
+We can write a Csnippet to simulate this process as follows:
+```{r, include=TRUE}
+rproc <- discrete.time.sim( 
+         step.fun=Csnippet(' L = rpois(b * A * exp(-cel * L - cea * A));
+                             P = rbinom(L, (1 - mu_L));
+                             double R = rbinom(P, exp(-cpa * A));
+                             double S = rbinom(A, (1 - mu_A));
+                             A = R + S;'),
+         delta.t=2);
+```
+
+We assume the measurement error is negligable, and therefore make no attempt to model it. As a result, our `rmeasure` function simply assigns the value of the $L$, $P$, and $A$ states to the respective observation values.
+
+```{r, include=TRUE}
+rmeas <- Csnippet("
+                    L_obs = L;
+                    P_obs = P;
+                    A_obs = A;");
+```
+
+## NLAR Modifications
+$$\begin{aligned}
+\sqrt{L_t} &= \sqrt{bA_{t-1} \exp(-c_{el} L_{t-1} - c_{ea} A_{t-1})} + E_{1t}\\
+\sqrt{P_t} &= \sqrt{L_{t-1}(1 - \mu_l)} + E_{2t}\\
+\sqrt{A_t} &= \sqrt{P_{t-1} exp(-c_{pa}A_{t-1}) + A_{t-1}(1 - \mu_a)} + E_{3t}\\
+\end{aligned}$$
+
+## References
