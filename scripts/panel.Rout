@@ -1,0 +1,286 @@
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: methods
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: iterators
+Loading required package: Rmpi
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: iterators
+Loading required package: iterators
+Loading required package: Rmpi
+Loading required package: Rmpi
+Loading required package: methods
+Loading required package: iterators
+Loading required package: Rmpi
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: rngtools
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: pkgmaker
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: rngtools
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: registry
+Loading required package: pkgmaker
+Loading required package: registry
+
+Attaching package: ‘pkgmaker’
+
+
+Attaching package: ‘pkgmaker’
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+
+Attaching package: ‘pkgmaker’
+
+
+Attaching package: ‘pkgmaker’
+
+
+Attaching package: ‘pkgmaker’
+
+
+Attaching package: ‘pkgmaker’
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Execution halted
+
+Attaching package: ‘pkgmaker’
+
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+-------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code.. Per user-direction, the job has been aborted.
+-------------------------------------------------------
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+
+Attaching package: ‘pkgmaker’
+
+Execution halted
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+Loading required package: rngtools
+Loading required package: pkgmaker
+Loading required package: registry
+
+Attaching package: ‘pkgmaker’
+
+The following object is masked from ‘package:base’:
+
+    isNamespaceLoaded
+
+Error in library(panelPomp) : there is no package called ‘panelPomp’
+Execution halted
+Loading required package: rngtools
+Loading required package: pkgmaker
+Loading required package: registry
+--------------------------------------------------------------------------
+orterun detected that one or more processes exited with non-zero status, thus causing
+thelsdfj job to be terminated. The first process to do so was:
+
+  Process name: [[29024,1],7]
+  Exit code:    1
+--------------------------------------------------------------------------
