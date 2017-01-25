@@ -4,7 +4,7 @@ library(reshape2)
 library(pomp)
 library(magrittr)
 library(reshape2)
-library(foreach)
+library(foreach, quietly = TRUE)
 #options(echo = FALSE)
 library(doMPI)
 library(doRNG)
@@ -12,7 +12,7 @@ library(panelPomp)
 
 source("./config.R")
 
-cl <- startMPIcluster()
+cl <- startMPIcluster(maxcores = opt.ncore)
 registerDoMPI(cl)
 
 optsN <- list(123, normal.kind="Ahrens")
@@ -336,7 +336,7 @@ print("Starting initial pfilter")
 
 stew(file="./output/pf.rda",{
   t_pf <- system.time(
-    pf <- foreach(i=1:i_max,
+    pf <- foreach(i=1:opt.initial-pfilter.njobs,
                   .packages='pomp',
                   .options.RNG = optsN,
                   .export=c("panelModel")
@@ -357,7 +357,7 @@ print("Starting local box search")
 
 stew(file="./output/box_search_local.rda",{
   t_local_mif <- system.time({
-    mifs_local <- foreach(i=1:opt.local-box-search.i_max,
+    mifs_local <- foreach(i=1:opt.local-box-search.opt.local-box-search.njobs,
                           .packages='pomp',
                           .options.RNG = optsN,
                           .combine=c,
