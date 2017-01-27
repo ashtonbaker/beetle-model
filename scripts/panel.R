@@ -313,7 +313,8 @@ init_snippet <- Csnippet("
     rmeasure = rmeas_snippet,
     toEstimationScale = to_est,
     fromEstimationScale = from_est,
-    params = p_mean)
+    params = p_mean,
+    cdir = '/scratch/kingaa_flux/ashtonsb/tmp/')
 }
 
 panelPomp(
