@@ -1,9 +1,8 @@
-#!/bin/bash
 #PBS -S /bin/bash
 #PBS -V
 #PBS -m abe
 #PBS -j oe
-#PBS -N dompi_test
+#PBS -N panel
 #PBS -M ashtonsb@umich.edu
 #PBS -q flux
 #PBS -A kingaa_flux
@@ -15,7 +14,7 @@ export OMPI_MCA_mpi_warn_on_fork=0
 #export OMPI_MCA_btl='^openib'
 #export OMPI_MCA_mtl='^mxm'
 
-RSCRIPT='Rscript --vanilla'
+RSCRIPT='Rscript'
 RFILE=$PBS_JOBNAME.R
 ROUTFILE=$PBS_JOBNAME.Rout
 

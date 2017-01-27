@@ -7,6 +7,7 @@ library(reshape2)
 library(foreach, quietly = TRUE)
 #options(echo = FALSE)
 library(doMPI)
+sprintf("Success")
 library(doRNG)
 library(panelPomp)
 
@@ -329,19 +330,19 @@ panelPomp(
 
 ################################################################################
 
-pf <- pfilter(panelModel, Np = opt.initial-pfilter.np)
+pf <- pfilter(panelModel, Np = opt.initial.pfilter.np)
 logLik(pf)
 
 print("Starting initial pfilter")
 
 stew(file="./output/pf.rda",{
   t_pf <- system.time(
-    pf <- foreach(i=1:opt.initial-pfilter.njobs,
+    pf <- foreach(i=1:opt.initial.pfilter.njobs,
                   .packages='pomp',
                   .options.RNG = optsN,
                   .export=c("panelModel")
     ) %dorng% {
-      pfilter(panelModel,Np=opt.initial-pfilter.np)
+      pfilter(panelModel,Np=opt.initial.pfilter.np)
     }
   )
   n_pf <- getDoParWorkers()
@@ -357,7 +358,7 @@ print("Starting local box search")
 
 stew(file="./output/box_search_local.rda",{
   t_local_mif <- system.time({
-    mifs_local <- foreach(i=1:opt.local-box-search.opt.local-box-search.njobs,
+    mifs_local <- foreach(i=1:opt.local.box.search.njobs,
                           .packages='pomp',
                           .options.RNG = optsN,
                           .combine=c,
@@ -366,12 +367,12 @@ stew(file="./output/box_search_local.rda",{
     {
       mif2(
         panelModel,
-        Np=opt.local-box-search.np,
-        Nmif=opt.local-box-search.nmif,
+        Np=opt.local.box.search.np,
+        Nmif=opt.local.box.search.nmif,
         cooling.type="geometric",
         cooling.fraction.50=0.5,
         transform=TRUE,
-        rw.sd=rw.sd(opt.local-box-search.rw.sd)
+        rw.sd=rw.sd(opt.local.box.search.rw.sd)
       )
     }
   })
@@ -389,7 +390,7 @@ stew(file="./output/lik_local.rda",{
                              .combine=rbind
     ) %dorng%
     {
-      evals <- replicate(opt.lik-local.nrep, logLik(pfilter(mf,Np=opt.lik-local.np)))
+      evals <- replicate(opt.lik.local.nrep, logLik(pfilter(mf,Np=opt.lik.local.np)))
       ll <- logmeanexp(evals,se=TRUE)
       c(coef(mf),loglik=ll[1],loglik=ll[2])
     }
@@ -421,7 +422,7 @@ stew(file="./output/box_search_global",{
   n_global <- getDoParWorkers()
   t_global <- system.time({
     mf1 <- mifs_local[[1]]
-    guesses <- as.data.frame(apply(params_box,1,function(x)runif(opt.global-search.nguesses,x[1],x[2])))
+    guesses <- as.data.frame(apply(params_box,1,function(x)runif(opt.global.search.nguesses,x[1],x[2])))
     results_global <- foreach(guess=iter(guesses,"row"),
                               .options.RNG = optsN,
                               .packages='pomp',
@@ -430,8 +431,8 @@ stew(file="./output/box_search_global",{
     ) %dorng%
     {
       mf <- mif2(mf1,start=c(unlist(guess)),tol=1e-60)
-      mf <- mif2(mf,Nmif=opt.global-search.nmif)
-      ll <- replicate(opt.global-search.nrep,logLik(pfilter(mf,Np=opt.global-search.np)))
+      mf <- mif2(mf,Nmif=opt.global.search.nmif)
+      ll <- replicate(opt.global.search.nrep,logLik(pfilter(mf,Np=opt.global.search.np)))
       ll <- logmeanexp(ll,se=TRUE)
       c(coef(mf),loglik=ll[1],loglik=ll[2])
     }
