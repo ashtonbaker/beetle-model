@@ -6,15 +6,18 @@ library(magrittr)
 library(reshape2)
 library(foreach, quietly = TRUE)
 #options(echo = FALSE)
-library(doMPI)
+#library(doMPI)
+library(doParallel)
 sprintf("Success")
 library(doRNG)
 library(panelPomp)
 
 source("./config.R")
 
-cl <- startMPIcluster(maxcores = opt.ncore)
-registerDoMPI(cl)
+#cl <- startMPIcluster(maxcores = opt.ncore)
+#registerDoMPI(cl)
+cl <- makeCluster(spec=50,type="MPI",outfile="/home/ashtonsb/outfile.out")
+registerDoParallel(cl)
 
 optsN <- list(123, normal.kind="Ahrens")
 
@@ -452,5 +455,6 @@ print(results_global)
 write.table(results_global, file = "./output/optim_params.csv", append = TRUE, col.names=TRUE, row.names = FALSE, sep=", ")
 
 
-closeCluster(cl)
+#closeCluster(cl)
+stopCluster(cl)
 mpi.quit()
