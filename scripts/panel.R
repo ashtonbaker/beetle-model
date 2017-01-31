@@ -317,13 +317,7 @@ init_snippet <- Csnippet("
     toEstimationScale = to_est,
     fromEstimationScale = from_est,
     params = p_mean,
-<<<<<<< HEAD
     cdir = '/scratch/kingaa_flux/ashtonsb/tmp/')
-=======
-    cdir = '/scratch/kingaa_flux/kingaa/'
-  )
->>>>>>> d853c6d63d6a73c92951177014eb8e10bf2cf23c
-}
 
 panelPomp(
   object = pompList,
