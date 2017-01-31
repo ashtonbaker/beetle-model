@@ -5,8 +5,9 @@ library(pomp)
 library(magrittr)
 library(reshape2)
 library(foreach, quietly = TRUE)
-#options(echo = FALSE)
+options(echo = FALSE)
 library(doMPI)
+#library(doParallel)
 sprintf("Success")
 library(doRNG)
 library(panelPomp)
@@ -15,10 +16,12 @@ source("./config.R")
 
 cl <- startMPIcluster(maxcores = opt.ncore)
 registerDoMPI(cl)
+#cl <- makeCluster(spec=40,type="MPI",outfile="/nfs/kinglab/kingaa/test/outfile.out")
+#registerDoParallel(cl)
 
 optsN <- list(123, normal.kind="Ahrens")
 
-stopifnot(packageVersion("pomp")>="1.8.8.1")
+stopifnot(packageVersion("pomp")>="1.10")
 
 read.csv("./data/data.csv") %>%
   subset(weeks <= 40, select=c(weeks,rep,L_obs,P_obs,A_obs)) -> dat
@@ -54,15 +57,15 @@ pompList <- setNames(object = vector(mode = "list", length = U),
 
 for (i.u in 1:U) {
   glob_snippet <- Csnippet(sprintf("
-                                   #include <math.h>
-                                   #define ESTAGES %d
-                                   #define LSTAGES %d
-                                   #define PSTAGES %d
-                                   #define ASTAGES %d
-                                   #define L_0 250
-                                   #define P_0 5
-                                   #define A_0 100
-                                   ",
+#include <math.h>
+#define ESTAGES %d
+#define LSTAGES %d
+#define PSTAGES %d
+#define ASTAGES %d
+#define L_0 250
+#define P_0 5
+#define A_0 100
+",
                                    opt.stages.E,
                                    opt.stages.L,
                                    opt.stages.P,
@@ -314,7 +317,12 @@ init_snippet <- Csnippet("
     toEstimationScale = to_est,
     fromEstimationScale = from_est,
     params = p_mean,
+<<<<<<< HEAD
     cdir = '/scratch/kingaa_flux/ashtonsb/tmp/')
+=======
+    cdir = '/scratch/kingaa_flux/kingaa/'
+  )
+>>>>>>> d853c6d63d6a73c92951177014eb8e10bf2cf23c
 }
 
 panelPomp(
@@ -339,11 +347,14 @@ print("Starting initial pfilter")
 stew(file="./output/pf.rda",{
   t_pf <- system.time(
     pf <- foreach(i=1:opt.initial.pfilter.njobs,
-                  .packages='pomp',
+                  .packages=c('panelPomp'),
                   .options.RNG = optsN,
-                  .export=c("panelModel")
+                  .export=c("panelModel","opt.initial.pfilter.np")
     ) %dorng% {
-      pfilter(panelModel,Np=opt.initial.pfilter.np)
+        library(panelPomp)
+        options(verbose=TRUE)
+        f <- selectMethod('pfilter',"panelPomp")
+        f(panelModel,Np=opt.initial.pfilter.np)
     }
   )
   n_pf <- getDoParWorkers()
@@ -373,7 +384,7 @@ stew(file="./output/box_search_local.rda",{
         cooling.type="geometric",
         cooling.fraction.50=0.5,
         transform=TRUE,
-        rw.sd=rw.sd(opt.local.box.search.rw.sd)
+        rw.sd=opt.local.box.search.rw.sd
       )
     }
   })
@@ -454,4 +465,5 @@ write.table(results_global, file = "./output/optim_params.csv", append = TRUE, c
 
 
 closeCluster(cl)
+#stopCluster(cl)
 mpi.quit()
