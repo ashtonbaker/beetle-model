@@ -293,8 +293,6 @@ init_snippet <- Csnippet("
       Ttau_P = log(tau_P-PSTAGES);
       Tod = log(od);")
 
-# CONSTRUCTION OF PANEL POMP OBJECT ############################################
-
   pompList[[i.u]] <-
   pomp(
     data = subset(dat, rep==i.u, select=-rep),
@@ -310,11 +308,14 @@ init_snippet <- Csnippet("
     globals = glob_snippet,
     initializer = init_snippet,
     rmeasure = rmeas_snippet,
+    rprocess = rproc_snippets,
     toEstimationScale = to_est,
     fromEstimationScale = from_est,
     params = p_mean,
     cdir = '/scratch/kingaa_flux/ashtonsb/tmp/')
+}
 
+# CONSTRUCTION OF PANEL POMP OBJECT ############################################
 panelPomp(
   object = pompList,
   shared = p_mean -> shared.params,
