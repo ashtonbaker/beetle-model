@@ -308,7 +308,7 @@ init_snippet <- Csnippet("
     globals = glob_snippet,
     initializer = init_snippet,
     rmeasure = rmeas_snippet,
-    rprocess = rproc_snippets,
+    rprocess = rproc_snippet,
     toEstimationScale = to_est,
     fromEstimationScale = from_est,
     params = p_mean,
