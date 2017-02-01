@@ -309,10 +309,6 @@ init_snippet <- Csnippet("
                    "tau_E", "tau_L", "tau_P","od"),
     globals = glob_snippet,
     initializer = init_snippet,
-    rprocess = discrete.time.sim(
-      step.fun = rproc_snippet,
-      delta.t = 1/7),
-    dmeasure = dmeas_snippet,
     rmeasure = rmeas_snippet,
     toEstimationScale = to_est,
     fromEstimationScale = from_est,
@@ -331,8 +327,7 @@ panelPomp(
   )
 ) -> panelModel
 
-################################################################################
-
+## PFILTER #####################################################################
 pf <- pfilter(panelModel, Np = opt.initial.pfilter.np)
 logLik(pf)
 
@@ -355,11 +350,13 @@ stew(file="./output/pf.rda",{
 },seed=625904618,kind="L'Ecuyer")
 
 print("Finished initial pfilter")
+################################################################################
 
 #(L_pf <- logmeanexp(sapply(pf,logLik),se=TRUE))
 #results <- #as.data.frame(as.list(c(coef(pf[[1]]),loglik=L_pf[1],loglik=L_pf[2])))
 #write.csv(results,file="./output/model_params.csv",row.names=FALSE)
 
+## LOCAL BOX SEARCH ############################################################
 print("Starting local box search")
 
 stew(file="./output/box_search_local.rda",{
@@ -385,7 +382,9 @@ stew(file="./output/box_search_local.rda",{
 },seed=482947940,kind="L'Ecuyer")
 
 print("Finished local box search")
+################################################################################
 
+## LIK LOCAL ###################################################################
 print("Starting lik_local")
 
 stew(file="./output/lik_local.rda",{
@@ -404,11 +403,13 @@ stew(file="./output/lik_local.rda",{
 },seed=900242057,kind="L'Ecuyer")
 
 print("Finished lik_local")
+################################################################################
 
 #results_local <- as.data.frame(results_local)
 #results <- rbind(results,results_local[names(results)])
 #write.csv(results,file="./output/model_params.csv",row.names=FALSE)
 
+## GLOBAL SEARCH ###############################################################
 params_box <- rbind(
   b = range(p_est$b),
   cea = range(p_est$cea),
@@ -423,7 +424,6 @@ params_box <- rbind(
 )
 
 print("Starting global search")
-
 stew(file="./output/box_search_global",{
   n_global <- getDoParWorkers()
   t_global <- system.time({
@@ -449,6 +449,8 @@ results_global <- as.data.frame(results_global)
 #write.csv(results,file="./output/model_params.csv",row.names=FALSE)
 
 print("Finished global search")
+################################################################################
+
 
 p_optim <- results_global[which.max(results_global$loglik),]
 print(p_optim)
