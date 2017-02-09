@@ -47,7 +47,7 @@ cpa[c(2, 13, 22)] = 0.35
 cpa[c(9, 14, 19)] = 0.50
 cpa[c(3, 18, 23)] = 1.00
 
-mu_A = c(0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96, 0.96)
+mu_A = rep(0.96, 24)
 mu_A[c(4, 11, 24)] = 100
 
 U <- 24
@@ -450,7 +450,7 @@ results_global <- as.data.frame(results_global)
 #write.csv(results,file="./output/model_params.csv",row.names=FALSE)
 
 print("Finished global search")
-
+print(t_global)
 p_optim <- results_global[which.max(results_global$loglik),]
 print(p_optim)
 
