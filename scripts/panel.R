@@ -8,13 +8,12 @@ library(foreach, quietly = TRUE)
 options(echo = FALSE)
 library(doMPI)
 #library(doParallel)
-sprintf("Success")
 library(doRNG)
 library(panelPomp)
 
 source("./config.R")
 
-cl <- startMPIcluster(maxcores = opt.ncore)
+cl <- startMPIcluster(maxcores = opt.ncore, verbose = FALSE)
 registerDoMPI(cl)
 #cl <- makeCluster(spec=40,type="MPI",outfile="/nfs/kinglab/kingaa/test/outfile.out")
 #registerDoParallel(cl)
@@ -426,7 +425,7 @@ params_box <- rbind(
 
 print("Starting global search")
 
-stew(file="./output/box_search_global",{
+stew(file="./output/box_search_global.rda",{
   n_global <- getDoParWorkers()
   t_global <- system.time({
     mf1 <- mifs_local[[1]]
@@ -457,7 +456,7 @@ print(p_optim)
 
 print(results_global)
 
-write.table(results_global, file = "./output/optim_params.csv", append = TRUE, col.names=TRUE, row.names = FALSE, sep=", ")
+#write.table(results_global, file = "./output/optim_params.csv", append = TRUE, col.names=TRUE, row.names = FALSE, sep=", ")
 
 
 closeCluster(cl)

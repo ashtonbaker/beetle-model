@@ -1,7 +1,7 @@
 library(panelPomp)
 
 #opt.njobs <- 1000
-opt.ncore <- 95
+opt.ncore <- 295
 #opt.chunk <- 1
 
 opt.stages.E <- 7
@@ -30,7 +30,7 @@ opt.local.box.search.rw.sd <- rw.sd(
 opt.lik.local.nrep <- 100
 opt.lik.local.np <- 1000
 
-opt.global.search.nguesses <- 10000
+opt.global.search.nguesses <- 100
 opt.global.search.nmif <- 30
-opt.global.search.nrep <- 10
-opt.global.search.np <- 10
+opt.global.search.nrep <- 1
+opt.global.search.np <- 1000
