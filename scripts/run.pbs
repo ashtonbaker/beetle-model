@@ -18,4 +18,5 @@ RSCRIPT='Rscript'
 RFILE=$PBS_JOBNAME.R
 ROUTFILE=$PBS_JOBNAME.Rout
 
+rm -rf /scratch/kingaa_flux/ashtonsb/tmp/
 orterun -np $PBS_NP $RSCRIPT $RFILE > $ROUTFILE 2>&1
