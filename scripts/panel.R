@@ -357,6 +357,7 @@ stew(file="./output/pf.rda",{
 },seed=625904618,kind="L'Ecuyer")
 
 print("Finished initial pfilter")
+print(t_pf)
 
 #(L_pf <- logmeanexp(sapply(pf,logLik),se=TRUE))
 #results <- #as.data.frame(as.list(c(coef(pf[[1]]),loglik=L_pf[1],loglik=L_pf[2])))
@@ -387,6 +388,7 @@ stew(file="./output/box_search_local.rda",{
 },seed=482947940,kind="L'Ecuyer")
 
 print("Finished local box search")
+print(t_local_mif)
 
 print("Starting lik_local")
 
@@ -406,6 +408,7 @@ stew(file="./output/lik_local.rda",{
 },seed=900242057,kind="L'Ecuyer")
 
 print("Finished lik_local")
+print(t_local_eval)
 
 params_box <- rbind(
   b = range(p_est$b),
