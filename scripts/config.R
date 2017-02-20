@@ -1,7 +1,7 @@
 library(panelPomp)
 
 #opt.njobs <- 1000
-opt.ncore <- 295
+opt.ncore <- 100
 #opt.chunk <- 1
 
 opt.stages.E <- 7
@@ -12,9 +12,9 @@ opt.stages.A <- 1
 opt.initial.pfilter.np <- 100
 opt.initial.pfilter.njobs <- 100
 
-opt.local.box.search.np <- 10000
+opt.local.box.search.np <- 1000
 opt.local.box.search.nmif <- 30
-opt.local.box.search.njobs <- 30
+opt.local.box.search.njobs <- 100
 opt.local.box.search.rw.sd <- rw.sd(
   b=0,
   cea=0.001,

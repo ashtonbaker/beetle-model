@@ -32,12 +32,13 @@ read.csv("./data/optim_params.csv") -> p_est
 p_est[c("b", "cea", "cel", "cpa", "mu_A", "mu_L","tau_E", "tau_L", "tau_P","od")] -> p_est
 p_mean = colMeans(p_est)
 
+U <- 24
 stages.E <- 7
 stages.L <- 7
 stages.P <- 7
 stages.A <- 1
 
-cpa = c(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+cpa = rep(0, U)
 cpa[c(4, 11, 24)] = 100
 cpa[c(5, 12, 15)] = 0.00
 cpa[c(1, 7, 20)] = 0.05
@@ -47,10 +48,10 @@ cpa[c(2, 13, 22)] = 0.35
 cpa[c(9, 14, 19)] = 0.50
 cpa[c(3, 18, 23)] = 1.00
 
-mu_A = rep(0.96, 24)
+mu_A = rep(0.96, U)
 mu_A[c(4, 11, 24)] = 100
 
-U <- 24
+
 pompList <- setNames(object = vector(mode = "list", length = U),
                      nm = paste0("unit", 1:U))
 
@@ -406,10 +407,6 @@ stew(file="./output/lik_local.rda",{
 
 print("Finished lik_local")
 
-#results_local <- as.data.frame(results_local)
-#results <- rbind(results,results_local[names(results)])
-#write.csv(results,file="./output/model_params.csv",row.names=FALSE)
-
 params_box <- rbind(
   b = range(p_est$b),
   cea = range(p_est$cea),
@@ -426,28 +423,38 @@ params_box <- rbind(
 print("Starting global search")
 
 stew(file="./output/box_search_global.rda",{
-  n_global <- getDoParWorkers()
-  t_global <- system.time({
-    mf1 <- mifs_local[[1]]
-    guesses <- as.data.frame(apply(params_box,1,function(x)runif(opt.global.search.nguesses,x[1],x[2])))
-    results_global <- foreach(guess=iter(guesses,"row"),
-                              .options.RNG = optsN,
-                              .packages='pomp',
-                              .combine=rbind,
-                              .export=c("mf1")
-    ) %dorng%
+n_global <- getDoParWorkers()
+t_global <- system.time({
+mf1 <- mifs_local[[1]]
+guesses <-
+  as.data.frame(
+    apply(
+      params_box,
+      1,
+      function(x)runif(opt.global.search.nguesses,x[1],x[2])))
+results_global <-
+  foreach(
+    guess=iter(guesses,"row"),
+    .options.RNG = optsN,
+    .packages='pomp',
+    .combine=rbind,
+    .export=c("mf1")
+    )
+    %dorng%
     {
       mf <- mif2(mf1,start=c(unlist(guess)),tol=1e-60)
       mf <- mif2(mf,Nmif=opt.global.search.nmif)
-      ll <- replicate(opt.global.search.nrep,logLik(pfilter(mf,Np=opt.global.search.np)))
+      ll <-
+        replicate(
+          opt.global.search.nrep,
+          logLik(pfilter(mf,Np=opt.global.search.np)))
       ll <- logmeanexp(ll,se=TRUE)
       c(coef(mf),loglik=ll[1],loglik=ll[2])
     }
   })
 },seed=1270401374,kind="L'Ecuyer")
+
 results_global <- as.data.frame(results_global)
-#results <- rbind(results,results_global[names(results)])
-#write.csv(results,file="./output/model_params.csv",row.names=FALSE)
 
 print("Finished global search")
 print(t_global)
@@ -456,9 +463,5 @@ print(p_optim)
 
 print(results_global)
 
-#write.table(results_global, file = "./output/optim_params.csv", append = TRUE, col.names=TRUE, row.names = FALSE, sep=", ")
-
-
 closeCluster(cl)
-#stopCluster(cl)
 mpi.quit()
