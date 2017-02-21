@@ -433,6 +433,8 @@ n_global <- getDoParWorkers()
 t_global <- system.time({
 mf1 <- mifs_local[[1]]
 
+default_coef <- coef(mf1)
+
 guesses <-
   as.data.frame(
     apply(
@@ -454,7 +456,9 @@ results_global <-
     .combine=rbind,
     .export=c("mf1")
     ) %dorng% {
-      mf <- mif2(mf1,start=c(unlist(guess)),tol=1e-60, Nmif=opt.global.search.nmif)
+      start_params <- default_coef
+      start_params$specific <- c(unlist(guess))
+      mf <- mif2(mf1,start=start_params,tol=1e-60, Nmif=opt.global.search.nmif)
       ll <-
         replicate(
           opt.global.search.nrep,
