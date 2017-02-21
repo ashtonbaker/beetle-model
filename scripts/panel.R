@@ -402,7 +402,7 @@ stew(file="./output/lik_local.rda",{
     {
       evals <- replicate(opt.lik.local.nrep, logLik(pfilter(mf,Np=opt.lik.local.np)))
       ll <- logmeanexp(evals,se=TRUE)
-      c(coef(mf),loglik=ll[1],loglik=ll[2])
+      c(coef(mf)$shared,loglik=ll[1],loglik=ll[2])
     }
   })
 },seed=900242057,kind="L'Ecuyer")
@@ -456,15 +456,21 @@ results_global <-
     .combine=rbind,
     .export=c("mf1")
     ) %dorng% {
-      start_params <- default_coef
-      start_params$specific <- c(unlist(guess))
-      mf <- mif2(mf1,start=start_params,tol=1e-60, Nmif=opt.global.search.nmif)
+      specific_params <- default_coef$specific
+
+      mf <-
+	mif2(
+	  mf1,
+          shared.start=c(unlist(guess)),
+          specific.start=specific_params,
+          tol=1e-60,
+          Nmif=opt.global.search.nmif)
       ll <-
         replicate(
           opt.global.search.nrep,
           logLik(pfilter(mf,Np=opt.global.search.np)))
       ll <- logmeanexp(ll,se=TRUE)
-      c(coef(mf),loglik=ll[1],loglik=ll[2])
+      c(coef(mf)$shared,loglik=ll[1],loglik=ll[2])
     }
   })
 },seed=1270401374,kind="L'Ecuyer")
