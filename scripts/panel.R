@@ -237,16 +237,16 @@ init_snippet <- Csnippet("
           dnbinom_mu(P_obs, 1/od, P_tot + fudge, 1) +
           dnbinom_mu(A_obs, 1/od, A + fudge,     1);
 
-  //  if(lik < -138){
-  //    Rprintf(\"\\n\\nweeks %f\", t);
-  //    Rprintf(\"\\nL_tot %f\", L_tot);
-  //    Rprintf(\"\\nP_tot %f\", P_tot);
-  //    Rprintf(\"\\nA_tot %f\", A);
-  //    Rprintf(\"\\nL_obs %f\", L_obs);
-  //    Rprintf(\"\\nP_obs %f\", P_obs);
-  //    Rprintf(\"\\nA_obs %f\", A_obs);
-  //    Rprintf(\"\\nloglik %f\",lik);
-  //  }
+    if(!R_FINITE(lik){
+      Rprintf(\"\\n\\nweeks %f\", t);
+      Rprintf(\"\\nL_tot %f\", L_tot);
+      Rprintf(\"\\nP_tot %f\", P_tot);
+      Rprintf(\"\\nA_tot %f\", A);
+      Rprintf(\"\\nL_obs %f\", L_obs);
+      Rprintf(\"\\nP_obs %f\", P_obs);
+      Rprintf(\"\\nA_obs %f\", A_obs);
+      Rprintf(\"\\nloglik %f\",lik);
+    }
 
     lik = (give_log) ? lik : exp(lik);
      ")
