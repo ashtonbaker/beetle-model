@@ -454,7 +454,8 @@ results_global <-
     .options.RNG = optsN,
     .packages='pomp',
     .combine=rbind,
-    .export=c("mf1")
+    .export=c("mf1"),
+    .errorhandling='remove'
     ) %dorng% {
       specific_params <- default_coef$specific
 
@@ -463,7 +464,7 @@ results_global <-
 	  mf1,
           shared.start=c(unlist(guess)),
           specific.start=specific_params,
-          tol=1e-60,
+          tol=1e-180,
           Nmif=opt.global.search.nmif)
       ll <-
         replicate(
@@ -476,6 +477,7 @@ results_global <-
 },seed=1270401374,kind="L'Ecuyer")
 
 results_global <- as.data.frame(results_global)
+write.table(results_global, file="results_global.csv")
 
 print("Finished global search")
 print(t_global)
