@@ -407,6 +407,7 @@ stew(file="./output/lik_local.rda",{
   })
 },seed=900242057,kind="L'Ecuyer")
 
+print(results_local)
 print("Finished lik_local")
 print(t_local_eval)
 
@@ -423,18 +424,28 @@ params_box <- rbind(
   od = range(p_est$od)
 )
 
+
 print("Starting global search")
 
 stew(file="./output/box_search_global.rda",{
 n_global <- getDoParWorkers()
+
 t_global <- system.time({
 mf1 <- mifs_local[[1]]
+
 guesses <-
   as.data.frame(
     apply(
       params_box,
       1,
       function(x)runif(opt.global.search.nguesses,x[1],x[2])))
+
+print("COEF")
+print(coef(mf1))
+
+print("GUESSES")
+print(guesses)
+
 results_global <-
   foreach(
     guess=iter(guesses,"row"),
@@ -442,11 +453,8 @@ results_global <-
     .packages='pomp',
     .combine=rbind,
     .export=c("mf1")
-    )
-    %dorng%
-    {
-      mf <- mif2(mf1,start=c(unlist(guess)),tol=1e-60)
-      mf <- mif2(mf,Nmif=opt.global.search.nmif)
+    ) %dorng% {
+      mf <- mif2(mf1,start=c(unlist(guess)),tol=1e-60, Nmif=opt.global.search.nmif)
       ll <-
         replicate(
           opt.global.search.nrep,

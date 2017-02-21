@@ -3,7 +3,7 @@
 #PBS -m abe
 #PBS -j oe
 #PBS -N panel
-#PBS -M ashtonsb@umich.edu
+
 #PBS -q flux
 #PBS -A kingaa_flux
 #PBS -l qos=flux
