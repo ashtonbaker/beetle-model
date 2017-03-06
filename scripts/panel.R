@@ -237,7 +237,7 @@ init_snippet <- Csnippet("
           dnbinom_mu(P_obs, 1/od, P_tot + fudge, 1) +
           dnbinom_mu(A_obs, 1/od, A + fudge,     1);
 
-    if(!R_FINITE(lik){
+    if(!R_FINITE(lik)){
       Rprintf(\"\\n\\nweeks %f\", t);
       Rprintf(\"\\nL_tot %f\", L_tot);
       Rprintf(\"\\nP_tot %f\", P_tot);
@@ -441,6 +441,7 @@ guesses <-
       params_box,
       1,
       function(x)runif(opt.global.search.nguesses,x[1],x[2])))
+guesses$b <- seq(0.00001, 2, len=opt.global.search.nguesses)
 
 print("COEF")
 print(coef(mf1))
