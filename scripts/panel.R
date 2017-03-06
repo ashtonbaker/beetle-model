@@ -402,9 +402,14 @@ stew(file="./output/lik_local.rda",{
                              .combine=rbind
     ) %dorng%
     {
-      evals <- replicate(opt.lik.local.nrep, logLik(pfilter(mf,Np=opt.lik.local.np)))
+      evals <-
+        replicate(
+          opt.lik.local.nrep,
+          logLik(pfilter(mf,Np=opt.lik.local.np)))
+
       ll <- logmeanexp(evals,se=TRUE)
-      c(coef(mf)$shared,loglik=ll[1],loglik=ll[2])
+
+      c(coef(mf)$specific,loglik=ll[1],loglik=ll[2])
     }
   })
 },seed=900242057,kind="L'Ecuyer")
@@ -456,9 +461,9 @@ results_global <-
     guess=iter(guesses,"row"),
     .options.RNG = optsN,
     .packages='pomp',
-    .combine=rbind,
+    .combine=c,
     .export=c("mf1"),
-    .errorhandling='remove'
+    .errorhandling='stop' # 'stop', 'remove', 'pass'
     ) %dorng% {
       specific_params <- default_coef$specific
 
@@ -469,6 +474,7 @@ results_global <-
           specific.start=specific_params,
           tol=1e-180,
           Nmif=opt.global.search.nmif)
+
       ll <-
         replicate(
           opt.global.search.nrep,
@@ -481,15 +487,20 @@ results_global <-
   })
 },seed=1270401374,kind="L'Ecuyer")
 
-results_global <- as.data.frame(results_global)
-write.table(results_global, file="results_global.csv")
+get.specific.coefs <- function(x) {
+  coef(x)$specific
+}
+
+global_coefs <- as.data.frame(sapply(results_global, get.specific.coefs))
+
+write.table(global_coefs, file="results_global.csv", append=TRUE)
 
 print("Finished global search")
 print(t_global)
-p_optim <- results_global[which.max(results_global$loglik),]
+p_optim <- global_coefs[which.max(global_coefs$loglik),]
 print(p_optim)
 
-print(results_global)
+print(global_coefs)
 
 closeCluster(cl)
 mpi.quit()
