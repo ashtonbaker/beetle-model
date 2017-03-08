@@ -61,15 +61,13 @@ for (i.u in 1:U) {
 #define ESTAGES %d
 #define LSTAGES %d
 #define PSTAGES %d
-#define ASTAGES %d
 #define L_0 250
 #define P_0 5
 #define A_0 100
 ",
                                    opt.stages.E,
                                    opt.stages.L,
-                                   opt.stages.P,
-                                   opt.stages.A))
+                                   opt.stages.P))
 
 init_snippet <- Csnippet("
   double *E = &E1;
