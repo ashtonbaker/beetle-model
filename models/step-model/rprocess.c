@@ -75,15 +75,19 @@ for (k = 0; k < PSTAGES; k++) {
 
 A -= adeath;
 
-if ((time %% 14 == 0) && (time != 0) && (%f < 50)) {
+if ((time %% 14 == 0) && (time != 0) && (mu_A_force > 0.00001)) {
   double P_tot = 0;
+
   for (k = 0; k < PSTAGES; k++) P_tot += P[k];
 
-  double A_pred = round((1 - 0.96) * A_prev) + round(P_prev * exp(-%f * A));
+  double A_pred = round((1 - mu_A_force) * A_prev) +
+                  round(P_prev * exp(-cpa_force * A));
+
   if (A_pred < A) {
     double A_sub = fmin(A - A_pred, A_prev);
     A = fmax(A - A_sub, 0);
   }
+
   P_prev = P_tot;
   A_prev = A;
 }
