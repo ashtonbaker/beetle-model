@@ -75,7 +75,7 @@ for (k = 0; k < PSTAGES; k++) {
 
 A -= adeath;
 
-if ((time %% 14 == 0) && (time != 0) && (mu_A_force > 0.00001)) {
+if ((time % 14 == 0) && (time != 0) && (mu_A_force > 0.00001)) {
   double P_tot = 0;
 
   for (k = 0; k < PSTAGES; k++) P_tot += P[k];

@@ -24,6 +24,7 @@ stopifnot(packageVersion("pomp")>="1.10")
 
 read.csv("./data/data.csv") %>%
   subset(weeks <= 40, select=c(weeks,rep,L_obs,P_obs,A_obs)) -> dat
+
 dat %>%
   melt(id=c("weeks","rep")) %>%
   acast(variable~rep~weeks) -> datarray
