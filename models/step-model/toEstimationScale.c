@@ -1,0 +1,10 @@
+Tb = log(b);
+Tcea = logit(cea);
+Tcel = logit(cel);
+Tcpa = logit(cpa);
+Tmu_A = logit(mu_A);
+Tmu_L = logit(mu_L);
+Ttau_E = log(tau_E-ESTAGES);
+Ttau_L = log(tau_L-LSTAGES);
+Ttau_P = log(tau_P-PSTAGES);
+Tod = log(od);
