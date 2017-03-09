@@ -1,6 +1,6 @@
 library(panelPomp)
 
-opt.ncore <- 100
+opt.ncore <- 200
 
 opt.stages.E <- 7
 opt.stages.L <- 7
@@ -25,10 +25,10 @@ opt.local.box.search.rw.sd <- rw.sd(
   tau_L=0.001,
   tau_P=0.001)
 
-opt.lik.local.nrep <- 95
+opt.lik.local.nrep <- 195
 opt.lik.local.np <- 1000
 
-opt.global.search.nguesses <- 95
-opt.global.search.nmif <- 60
+opt.global.search.nguesses <- 195
+opt.global.search.nmif <- 600
 opt.global.search.nrep <- 10
 opt.global.search.np <- 1000
