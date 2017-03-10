@@ -378,7 +378,7 @@ stew(file="./output/box_search_local.rda",{
         Np=opt.local.box.search.np,
         Nmif=opt.local.box.search.nmif,
         cooling.type="geometric",
-        cooling.fraction.50=0.5,
+        cooling.fraction.50=0.68,
         transform=TRUE,
         rw.sd=opt.local.box.search.rw.sd
       )
@@ -440,7 +440,11 @@ guesses <-
       params_box,
       1,
       function(x)runif(opt.global.search.nguesses,x[1],x[2])))
-guesses$b <- seq(0.00001, 2, len=opt.global.search.nguesses)
+
+guesses$b <- seq(0.25, 5, len=opt.global.search.nguesses)
+
+#guesses <- read.csv("./results_global.csv", sep=' ')[c("b", "cea", "cel", "cpa", "mu_A", "mu_L",
+#                   "tau_E", "tau_L", "tau_P","od")]
 
 print("COEF")
 print(coef(mf1))
@@ -466,20 +470,24 @@ results_global <-
           specific.start=specific_params,
           tol=1e-180,
           Nmif=opt.global.search.nmif)
+
       ll <-
         replicate(
           opt.global.search.nrep,
           logLik(pfilter(mf,Np=opt.global.search.np)))
       ll <- logmeanexp(ll,se=TRUE)
+
+
       c(coef(mf)$shared,loglik=ll[1],loglik=ll[2])
     }
   })
 },seed=1270401374,kind="L'Ecuyer")
 
 results_global <- as.data.frame(results_global)
-write.table(results_global, file="results_global.csv")
+write.table(results_global, file="results_global.csv", append = TRUE, row.names=FALSE)
 
 print("Finished global search")
+
 print(t_global)
 p_optim <- results_global[which.max(results_global$loglik),]
 print(p_optim)
