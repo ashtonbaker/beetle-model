@@ -24,6 +24,7 @@ stopifnot(packageVersion("pomp")>="1.10")
 
 read.csv("./data/data.csv") %>%
   subset(weeks <= 40, select=c(weeks,rep,L_obs,P_obs,A_obs)) -> dat
+
 dat %>%
   melt(id=c("weeks","rep")) %>%
   acast(variable~rep~weeks) -> datarray
@@ -56,79 +57,75 @@ pompList <- setNames(object = vector(mode = "list", length = U),
                      nm = paste0("unit", 1:U))
 
 for (i.u in 1:U) {
-  glob_snippet <-
-    Csnippet(sprintf("
-      #include <math.h>
-      #define ESTAGES %d
-      #define LSTAGES %d
-      #define PSTAGES %d
-      #define ASTAGES %d
-      #define L_0 250
-      #define P_0 5
-      #define A_0 100
-      ",
-      opt.stages.E,
-      opt.stages.L,
-      opt.stages.P,
-      opt.stages.A))
+  glob_snippet <- Csnippet(sprintf("
+#include <math.h>
+#define ESTAGES %d
+#define LSTAGES %d
+#define PSTAGES %d
+#define L_0 250
+#define P_0 5
+#define A_0 100
+",
+                                   opt.stages.E,
+                                   opt.stages.L,
+                                   opt.stages.P))
 
-  init_snippet <-
-    Csnippet("
-      double *E = &E1;
-      double *L = &L1;
-      double *P = &P1;
+init_snippet <- Csnippet("
+  double *E = &E1;
+  double *L = &L1;
+  double *P = &P1;
 
-      double gamma_L = (LSTAGES / tau_L) * (1 - mu_L);
-      double gamma_P = (PSTAGES / tau_P) * exp((-cpa * A_0) / ESTAGES);
+  double gamma_L = (LSTAGES / tau_L) * (1 - mu_L);
+  double gamma_P = (PSTAGES / tau_P) * exp((-cpa * A_0) / ESTAGES);
 
-      double mu_l = (LSTAGES / tau_L) * mu_L;
-      double mu_p = (PSTAGES / tau_P) * (1 - exp((-cpa * A_0) / ESTAGES));
+  double mu_l = (LSTAGES / tau_L) * mu_L;
+  double mu_p = (PSTAGES / tau_P) * (1 - exp((-cpa * A_0) / ESTAGES));
 
-      double L_rate[LSTAGES] = {0};
-      double P_rate[PSTAGES] = {0};
+  double L_rate[LSTAGES] = {0};
+  double P_rate[PSTAGES] = {0};
 
-      int k;
-      double sum;
-      for (k = 0, sum = 0; k < LSTAGES; k++){
-        L_rate[k] = pow(gamma_L/(gamma_L + mu_l), k);
-        sum += L_rate[k];
-      }
-      for (k = 0; k < LSTAGES; k++) L_rate[k] /= sum;
-      for (k = LSTAGES - 1, sum = 0; k >=0; k--){
-        sum += L_rate[k];
-        L_rate[k] /= sum;
-      }
+  int k;
+  double sum;
+  for (k = 0, sum = 0; k < LSTAGES; k++){
+     L_rate[k] = pow(gamma_L/(gamma_L + mu_l), k);
+     sum += L_rate[k];
+  }
+  for (k = 0; k < LSTAGES; k++) L_rate[k] /= sum;
+  for (k = LSTAGES - 1, sum = 0; k >=0; k--){
+    sum += L_rate[k];
+    L_rate[k] /= sum;
+  }
 
-      for (k = 0, sum = 0; k < PSTAGES; k++){
-        P_rate[k] = pow(gamma_P/(gamma_P + mu_p), k);
-        sum += P_rate[k];
-      }
+  for (k = 0, sum = 0; k < PSTAGES; k++){
+    P_rate[k] = pow(gamma_P/(gamma_P + mu_p), k);
+    sum += P_rate[k];
+  }
 
-      for (k = 0; k < PSTAGES; k++) P_rate[k] /= sum;
-      for (k = PSTAGES - 1, sum = 0; k >=0; k--){
-        sum += P_rate[k];
-        P_rate[k] /= sum;
-      }
+  for (k = 0; k < PSTAGES; k++) P_rate[k] /= sum;
+  for (k = PSTAGES - 1, sum = 0; k >=0; k--){
+    sum += P_rate[k];
+    P_rate[k] /= sum;
+  }
 
 
-      for (k = 0; k < ESTAGES; k++) E[k] = 0;
+  for (k = 0; k < ESTAGES; k++) E[k] = 0;
 
-      int L_count = L_0;
-      for (k = 0; k < LSTAGES - 1; k++){
-        L[k] = rbinom(L_count, L_rate[k]);
-        L_count -= L[k];
-      }
-      L[LSTAGES - 1] = L_count;
+  int L_count = L_0;
+  for (k = 0; k < LSTAGES - 1; k++){
+    L[k] = rbinom(L_count, L_rate[k]);
+    L_count -= L[k];
+  }
+  L[LSTAGES - 1] = L_count;
 
-      int P_count = P_0;
-      for (k = 0; k < PSTAGES - 1; k++){
-        P[k] = rbinom(P_count, P_rate[k]);
-        P_count -= P[k];
-      }
+  int P_count = P_0;
+  for (k = 0; k < PSTAGES - 1; k++){
+    P[k] = rbinom(P_count, P_rate[k]);
+    P_count -= P[k];
+  }
 
-      P[PSTAGES - 1] = P_count;
+  P[PSTAGES - 1] = P_count;
 
-      A = 100;")
+  A = 100;")
 
   rproc_snippet <-
     Csnippet(sprintf("
@@ -220,37 +217,38 @@ for (i.u in 1:U) {
         }
         P_prev = P_tot;
         A_prev = A;
-      }",
-      mu_A[i.u], cpa[i.u]))
-
-  dmeas_snippet <-
-    Csnippet("
-      const double *L = &L1;
-      const double *P = &P1;
-      double fudge = 1e-9;
-
-      int k;
-      double L_tot = 0;
-      double P_tot = 0;
-      for (k = 0; k < LSTAGES; k++) L_tot += L[k];
-      for (k = 0; k < PSTAGES; k++) P_tot += P[k];
-
-      lik = dnbinom_mu(L_obs, 1/od, L_tot + fudge, 1) +
-            dnbinom_mu(P_obs, 1/od, P_tot + fudge, 1) +
-            dnbinom_mu(A_obs, 1/od, A + fudge,     1);
-
-      if(!R_FINITE(lik)){
-        Rprintf(\"\\n\\nweeks %f\", t);
-        Rprintf(\"\\nL_tot %f\", L_tot);
-        Rprintf(\"\\nP_tot %f\", P_tot);
-        Rprintf(\"\\nA_tot %f\", A);
-        Rprintf(\"\\nL_obs %f\", L_obs);
-        Rprintf(\"\\nP_obs %f\", P_obs);
-        Rprintf(\"\\nA_obs %f\", A_obs);
-        Rprintf(\"\\nloglik %f\",lik);
       }
+      ", mu_A[i.u], cpa[i.u]))
 
-      lik = (give_log) ? lik : exp(lik);")
+  dmeas_snippet <- Csnippet(
+    "
+    const double *L = &L1;
+    const double *P = &P1;
+    double fudge = 1e-9;
+
+    int k;
+    double L_tot = 0;
+    double P_tot = 0;
+    for (k = 0; k < LSTAGES; k++) L_tot += L[k];
+    for (k = 0; k < PSTAGES; k++) P_tot += P[k];
+
+    lik = dnbinom_mu(L_obs, 1/od, L_tot + fudge, 1) +
+          dnbinom_mu(P_obs, 1/od, P_tot + fudge, 1) +
+          dnbinom_mu(A_obs, 1/od, A + fudge,     1);
+
+    if(!R_FINITE(lik)){
+      Rprintf(\"\\n\\nweeks %f\", t);
+      Rprintf(\"\\nL_tot %f\", L_tot);
+      Rprintf(\"\\nP_tot %f\", P_tot);
+      Rprintf(\"\\nA_tot %f\", A);
+      Rprintf(\"\\nL_obs %f\", L_obs);
+      Rprintf(\"\\nP_obs %f\", P_obs);
+      Rprintf(\"\\nA_obs %f\", A_obs);
+      Rprintf(\"\\nloglik %f\",lik);
+    }
+
+    lik = (give_log) ? lik : exp(lik);
+     ")
 
   rmeas_snippet <-
     Csnippet("
@@ -292,8 +290,7 @@ for (i.u in 1:U) {
       Ttau_E = log(tau_E-ESTAGES);
       Ttau_L = log(tau_L-LSTAGES);
       Ttau_P = log(tau_P-PSTAGES);
-      Tod = log(od);
-      ")
+      Tod = log(od);")
 
 # CONSTRUCTION OF PANEL POMP OBJECT ############################################
 
@@ -381,7 +378,7 @@ stew(file="./output/box_search_local.rda",{
         Np=opt.local.box.search.np,
         Nmif=opt.local.box.search.nmif,
         cooling.type="geometric",
-        cooling.fraction.50=0.5,
+        cooling.fraction.50=0.68,
         transform=TRUE,
         rw.sd=opt.local.box.search.rw.sd
       )
@@ -402,14 +399,9 @@ stew(file="./output/lik_local.rda",{
                              .combine=rbind
     ) %dorng%
     {
-      evals <-
-        replicate(
-          opt.lik.local.nrep,
-          logLik(pfilter(mf,Np=opt.lik.local.np)))
-
+      evals <- replicate(opt.lik.local.nrep, logLik(pfilter(mf,Np=opt.lik.local.np)))
       ll <- logmeanexp(evals,se=TRUE)
-
-      c(coef(mf)$specific,loglik=ll[1],loglik=ll[2])
+      c(coef(mf)$shared,loglik=ll[1],loglik=ll[2])
     }
   })
 },seed=900242057,kind="L'Ecuyer")
@@ -434,73 +426,84 @@ params_box <- rbind(
 
 print("Starting global search")
 
-stew(file="./output/box_search_global.rda",{
-n_global <- getDoParWorkers()
 
-t_global <- system.time({
 mf1 <- mifs_local[[1]]
 
 default_coef <- coef(mf1)
 
-guesses <-
-  as.data.frame(
-    apply(
-      params_box,
-      1,
-      function(x)runif(opt.global.search.nguesses,x[1],x[2])))
-guesses$b <- seq(0.00001, 2, len=opt.global.search.nguesses)
+paramnames = c("b", "cea", "cel", "cpa", "mu_A", "mu_L",
+               "tau_E", "tau_L", "tau_P","od")
 
-print("COEF")
-print(coef(mf1))
-
-print("GUESSES")
-print(guesses)
-
-results_global <-
-  foreach(
-    guess=iter(guesses,"row"),
-    .options.RNG = optsN,
-    .packages='pomp',
-    .combine=c,
-    .export=c("mf1"),
-    .errorhandling='stop' # 'stop', 'remove', 'pass'
-    ) %dorng% {
-      specific_params <- default_coef$specific
-
-      mf <-
-        mif2(
-          mf1,
-          shared.start=c(unlist(guess)),
-          specific.start=specific_params,
-          tol=1e-180,
-          Nmif=opt.global.search.nmif)
-
-      ll <-
-        replicate(
-          opt.global.search.nrep,
-          logLik(pfilter(mf,Np=opt.global.search.np)))
-
-      ll <- logmeanexp(ll,se=TRUE)
-
-      c(coef(mf)$shared,loglik=ll[1],loglik=ll[2])
-    }
-  })
-},seed=1270401374,kind="L'Ecuyer")
-
-get.specific.coefs <- function(x) {
-  coef(x)$specific
+if (!file.exists('./results_global.csv')) {
+  guesses <- data.frame(b = seq(0.15, 20, len=1986))
+  guesses$loglik <- -1000000
+  guesses$loglik.se <- 0
+  guesses$delta.loglik <- 1000
+  guesses[,paramnames] <-
+    as.data.frame(
+      apply(
+        params_box,
+        1,
+        function(x)runif(nrow(guesses),x[1],x[2])))
+  guesses$b <- seq(0.15, 20, len=1986)
+  write.csv(guesses, './results_global.csv', row.names=FALSE)
+} else {
+  guesses <- read.csv('./results_global.csv')
 }
 
-global_coefs <- as.data.frame(sapply(results_global, get.specific.coefs))
+row.names = c("b","loglik","loglik.se","delta.loglik","cea","cel","cpa","mu_A",
+              "mu_L","tau_E","tau_L","tau_P","od")
 
-write.table(global_coefs, file="results_global.csv", append=TRUE)
+while (TRUE) {
+  guesses.to.update <- guesses[sample(1:nrow(guesses), opt.global.search.nguesses),] 
+  guesses.to.update[1:200,] <- guesses[order(guesses$delta.loglik, decreasing = T),][1:200,]
+  t_global <- system.time(
+  results_global <-
+    foreach(
+      guess=iter(guesses.to.update,"row"),
+      .options.RNG = optsN,
+      .packages='pomp',
+      .combine=rbind,
+      .export=c("mf1"),
+      .errorhandling='remove'
+      ) %dorng% {
+        specific_params <- default_coef$specific
+  
+        mf <-
+    	    mif2(
+        	  mf1,
+            shared.start=c(unlist(guess[,paramnames])),
+            specific.start=specific_params,
+            tol=1e-180,
+            Nmif=opt.global.search.nmif)
+  
+        ll <-
+          replicate(
+            opt.global.search.nrep,
+            logLik(pfilter(mf,Np=opt.global.search.np)))
+        
+        ll <- logmeanexp(ll,se=TRUE)
+        
+        c(coef(mf)$shared,delta.loglik=(ll[1]-guess$loglik), loglik=ll[1],loglik=ll[2])
+      }
+    )
+  for (i in 1:nrow(results_global)){
+    guess.row <- which.min(abs(guesses[,'b'] - results_global[i,'b']))
+    guesses[guess.row,row.names] <- results_global[i,row.names]
+  }
+  
+  write.csv(guesses, './results_global.csv', row.names=FALSE)
+  print("Finished 1 iteration")
+  print(t_global)
+}
 
-print("Finished global search")
-print(t_global)
-p_optim <- global_coefs[which.max(global_coefs$loglik),]
-print(p_optim)
+#print("Finished global search")
 
-print(global_coefs)
+#print(t_global)
+#p_optim <- results_global[which.max(results_global$loglik),]
+#print(p_optim)
+
+#print(results_global)
 
 closeCluster(cl)
 mpi.quit()
