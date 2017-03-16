@@ -28,7 +28,7 @@ opt.local.box.search.rw.sd <- rw.sd(
 opt.lik.local.nrep <- 100
 opt.lik.local.np <- 1000
 
-opt.global.search.nguesses <- 99
+opt.global.search.nguesses <- 250
 opt.global.search.nmif <- 300
 opt.global.search.nrep <- 10
 opt.global.search.np <- 1000
