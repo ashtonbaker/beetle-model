@@ -62,22 +62,13 @@ for (i.u in 1:U) {
 #define ESTAGES %d
 #define LSTAGES %d
 #define PSTAGES %d
-<<<<<<< HEAD
-=======
-#define ASTAGES %d
->>>>>>> 880c595d607ba0e2c5f9a5bdb7a1961795b0dee4
 #define L_0 250
 #define P_0 5
 #define A_0 100
 ",
                                    opt.stages.E,
                                    opt.stages.L,
-<<<<<<< HEAD
                                    opt.stages.P))
-=======
-                                   opt.stages.P,
-                                   opt.stages.A))
->>>>>>> 880c595d607ba0e2c5f9a5bdb7a1961795b0dee4
 
 init_snippet <- Csnippet("
   double *E = &E1;
@@ -440,7 +431,6 @@ mf1 <- mifs_local[[1]]
 
 default_coef <- coef(mf1)
 
-<<<<<<< HEAD
 paramnames = c("b", "cea", "cel", "cpa", "mu_A", "mu_L",
                "tau_E", "tau_L", "tau_P","od")
 
@@ -514,59 +504,6 @@ while (TRUE) {
 #print(p_optim)
 
 #print(results_global)
-=======
-guesses <-
-  as.data.frame(
-    apply(
-      params_box,
-      1,
-      function(x)runif(opt.global.search.nguesses,x[1],x[2])))
-guesses$b <- seq(0.00001, 2, len=opt.global.search.nguesses)
-
-print("COEF")
-print(coef(mf1))
-
-print("GUESSES")
-print(guesses)
-
-results_global <-
-  foreach(
-    guess=iter(guesses,"row"),
-    .options.RNG = optsN,
-    .packages='pomp',
-    .combine=rbind,
-    .export=c("mf1"),
-    .errorhandling='remove'
-    ) %dorng% {
-      specific_params <- default_coef$specific
-
-      mf <-
-	mif2(
-	  mf1,
-          shared.start=c(unlist(guess)),
-          specific.start=specific_params,
-          tol=1e-180,
-          Nmif=opt.global.search.nmif)
-      ll <-
-        replicate(
-          opt.global.search.nrep,
-          logLik(pfilter(mf,Np=opt.global.search.np)))
-      ll <- logmeanexp(ll,se=TRUE)
-      c(coef(mf)$shared,loglik=ll[1],loglik=ll[2])
-    }
-  })
-},seed=1270401374,kind="L'Ecuyer")
-
-results_global <- as.data.frame(results_global)
-write.table(results_global, file="results_global.csv")
-
-print("Finished global search")
-print(t_global)
-p_optim <- results_global[which.max(results_global$loglik),]
-print(p_optim)
-
-print(results_global)
->>>>>>> 880c595d607ba0e2c5f9a5bdb7a1961795b0dee4
 
 closeCluster(cl)
 mpi.quit()
