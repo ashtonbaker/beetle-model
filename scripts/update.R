@@ -24,7 +24,6 @@ stopifnot(packageVersion("pomp")>="1.10")
 
 read.csv("./data/data.csv") %>%
   subset(weeks <= 40, select=c(weeks,rep,L_obs,P_obs,A_obs)) -> dat
-
 dat %>%
   melt(id=c("weeks","rep")) %>%
   acast(variable~rep~weeks) -> datarray
@@ -62,22 +61,15 @@ for (i.u in 1:U) {
 #define ESTAGES %d
 #define LSTAGES %d
 #define PSTAGES %d
-<<<<<<< HEAD
-=======
 #define ASTAGES %d
->>>>>>> 880c595d607ba0e2c5f9a5bdb7a1961795b0dee4
 #define L_0 250
 #define P_0 5
 #define A_0 100
 ",
                                    opt.stages.E,
                                    opt.stages.L,
-<<<<<<< HEAD
-                                   opt.stages.P))
-=======
                                    opt.stages.P,
                                    opt.stages.A))
->>>>>>> 880c595d607ba0e2c5f9a5bdb7a1961795b0dee4
 
 init_snippet <- Csnippet("
   double *E = &E1;
@@ -387,7 +379,7 @@ stew(file="./output/box_search_local.rda",{
         Np=opt.local.box.search.np,
         Nmif=opt.local.box.search.nmif,
         cooling.type="geometric",
-        cooling.fraction.50=0.68,
+        cooling.fraction.50=0.5,
         transform=TRUE,
         rw.sd=opt.local.box.search.rw.sd
       )
@@ -435,93 +427,21 @@ params_box <- rbind(
 
 print("Starting global search")
 
+stew(file="./output/box_search_global.rda",{
+n_global <- getDoParWorkers()
 
+t_global <- system.time({
 mf1 <- mifs_local[[1]]
 
 default_coef <- coef(mf1)
 
-<<<<<<< HEAD
-paramnames = c("b", "cea", "cel", "cpa", "mu_A", "mu_L",
-               "tau_E", "tau_L", "tau_P","od")
-
-if (!file.exists('./results_global.csv')) {
-  guesses <- data.frame(b = seq(0.15, 20, len=1986))
-  guesses$loglik <- -1000000
-  guesses$loglik.se <- 0
-  guesses$delta.loglik <- 1000
-  guesses[,paramnames] <-
-    as.data.frame(
-      apply(
-        params_box,
-        1,
-        function(x)runif(nrow(guesses),x[1],x[2])))
-  guesses$b <- seq(0.15, 20, len=1986)
-  write.csv(guesses, './results_global.csv', row.names=FALSE)
-} else {
-  guesses <- read.csv('./results_global.csv')
-}
-
-row.names = c("b","loglik","loglik.se","delta.loglik","cea","cel","cpa","mu_A",
-              "mu_L","tau_E","tau_L","tau_P","od")
-
-while (TRUE) {
-  guesses.to.update <- guesses[sample(1:nrow(guesses), opt.global.search.nguesses),] 
-  guesses.to.update[1:200,] <- guesses[order(guesses$delta.loglik, decreasing = T),][1:200,]
-  t_global <- system.time(
-  results_global <-
-    foreach(
-      guess=iter(guesses.to.update,"row"),
-      .options.RNG = optsN,
-      .packages='pomp',
-      .combine=rbind,
-      .export=c("mf1"),
-      .errorhandling='remove'
-      ) %dorng% {
-        specific_params <- default_coef$specific
-  
-        mf <-
-    	    mif2(
-        	  mf1,
-            shared.start=c(unlist(guess[,paramnames])),
-            specific.start=specific_params,
-            tol=1e-180,
-            Nmif=opt.global.search.nmif)
-  
-        ll <-
-          replicate(
-            opt.global.search.nrep,
-            logLik(pfilter(mf,Np=opt.global.search.np)))
-        
-        ll <- logmeanexp(ll,se=TRUE)
-        
-        c(coef(mf)$shared,delta.loglik=(ll[1]-guess$loglik), loglik=ll[1],loglik=ll[2])
-      }
-    )
-  for (i in 1:nrow(results_global)){
-    guess.row <- which.min(abs(guesses[,'b'] - results_global[i,'b']))
-    guesses[guess.row,row.names] <- results_global[i,row.names]
-  }
-  
-  write.csv(guesses, './results_global.csv', row.names=FALSE)
-  print("Finished 1 iteration")
-  print(t_global)
-}
-
-#print("Finished global search")
-
-#print(t_global)
-#p_optim <- results_global[which.max(results_global$loglik),]
-#print(p_optim)
-
-#print(results_global)
-=======
 guesses <-
   as.data.frame(
     apply(
       params_box,
       1,
       function(x)runif(opt.global.search.nguesses,x[1],x[2])))
-guesses$b <- seq(0.00001, 2, len=opt.global.search.nguesses)
+guesses$b <- seq(0, 5, len=opt.global.search.nguesses)
 
 print("COEF")
 print(coef(mf1))
@@ -558,6 +478,58 @@ results_global <-
 },seed=1270401374,kind="L'Ecuyer")
 
 results_global <- as.data.frame(results_global)
+
+file.remove("./output/box_search_global.rda")
+
+stew(file="./output/box_search_global.rda",{
+n_global <- getDoParWorkers()
+
+t_global <- system.time({
+mf1 <- mifs_local[[1]]
+
+default_coef <- coef(mf1)
+
+guesses <-
+  as.data.frame(
+    apply(
+      params_box,
+      1,
+      function(x)runif(opt.global.search.nguesses,x[1],x[2])))
+guesses$b <- seq(0, 5, len=opt.global.search.nguesses)
+
+print("COEF")
+print(coef(mf1))
+
+print("GUESSES")
+print(guesses)
+
+results_global <-
+  foreach(
+    guess=iter(guesses,"row"),
+    .options.RNG = optsN,
+    .packages='pomp',
+    .combine=rbind,
+    .export=c("mf1"),
+    .errorhandling='remove'
+    ) %dorng% {
+      specific_params <- default_coef$specific
+
+      mf <-
+	    mif2(
+	  mf1,
+    tol=1e-180,
+    Nmif=opt.global.search.nmif)
+      ll <-
+        replicate(
+          opt.global.search.nrep,
+          logLik(pfilter(mf,Np=opt.global.search.np)))
+      ll <- logmeanexp(ll,se=TRUE)
+      c(coef(mf)$shared,loglik=ll[1],loglik=ll[2])
+    }
+  })
+},seed=1270401374,kind="L'Ecuyer")
+
+results_global <- as.data.frame(results_global)
 write.table(results_global, file="results_global.csv")
 
 print("Finished global search")
@@ -566,7 +538,6 @@ p_optim <- results_global[which.max(results_global$loglik),]
 print(p_optim)
 
 print(results_global)
->>>>>>> 880c595d607ba0e2c5f9a5bdb7a1961795b0dee4
 
 closeCluster(cl)
 mpi.quit()
