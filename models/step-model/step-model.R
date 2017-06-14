@@ -1,7 +1,7 @@
 require(pomp)
 
 step.model <- function(data, params, statenames, paramnames, globals,
-                       initializer, rprocess, dmeasure, rmeasure,
+                       initializer, rprocess, dmeasure, rmeasure, skeleton,
                        fromEstimationScale, toEstimationScale,
                        times = 'weeks',
                        t0 = 0,
@@ -24,6 +24,12 @@ step.model <- function(data, params, statenames, paramnames, globals,
       'tau_E', 'tau_L', 'tau_P',
       'od'
       )
+  }
+  
+  if (missing(skeleton)) {
+    skeleton <- map(Csnippet(
+        readChar('./models/step-model/skeleton.c', nchars=1e7)),
+      delta.t = delta.t)
   }
 
   if (missing(globals)) {
@@ -80,6 +86,7 @@ step.model <- function(data, params, statenames, paramnames, globals,
     globals = globals,
     initializer = initializer,
     rprocess = rprocess,
+    skeleton = skeleton,
     dmeasure = dmeasure,
     rmeasure = rmeasure,
     toEstimationScale   = toEstimationScale,

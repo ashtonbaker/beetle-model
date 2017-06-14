@@ -1,3 +1,3 @@
 DL = b * A * exp(-cel * L - cea * A);
-DP = L * (1 - ul);
-DA = P * exp(-cpa * A) + A * (1 - ua);
+DP = L * (1 - mu_L);
+DA = P * exp(-cpa * A) + A * (1 - mu_A);

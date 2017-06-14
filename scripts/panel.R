@@ -315,8 +315,8 @@ init_snippet <- Csnippet("
     rmeasure = rmeas_snippet,
     toEstimationScale = to_est,
     fromEstimationScale = from_est,
-    params = p_mean,
-    cdir = '/scratch/kingaa_flux/ashtonsb/'
+    params = p_mean
+    #cdir = '/tmp/'
   )
 }
 
@@ -378,7 +378,7 @@ stew(file="./output/box_search_local.rda",{
         Np=opt.local.box.search.np,
         Nmif=opt.local.box.search.nmif,
         cooling.type="geometric",
-        cooling.fraction.50=0.68,
+        cooling.fraction.50=0.50,
         transform=TRUE,
         rw.sd=opt.local.box.search.rw.sd
       )
@@ -463,33 +463,44 @@ while (TRUE) {
       guess=iter(guesses.to.update,"row"),
       .options.RNG = optsN,
       .packages='pomp',
-      .combine=rbind,
+#     .combine=l,
       .export=c("mf1"),
       .errorhandling='remove'
       ) %dorng% {
-        specific_params <- default_coef$specific
-  
-        mf <-
-    	    mif2(
-        	  mf1,
-            shared.start=c(unlist(guess[,paramnames])),
-            specific.start=specific_params,
-            tol=1e-180,
-            Nmif=opt.global.search.nmif)
-  
-        ll <-
-          replicate(
-            opt.global.search.nrep,
-            logLik(pfilter(mf,Np=opt.global.search.np)))
-        
-        ll <- logmeanexp(ll,se=TRUE)
-        
-        c(coef(mf)$shared,delta.loglik=(ll[1]-guess$loglik), loglik=ll[1],loglik=ll[2])
+        try(
+        {
+          specific_params <- default_coef$specific
+    
+          mf <-
+      	    mif2(
+         	    mf1,
+              Np=opt.global.search.np,
+              shared.start=c(unlist(guess[,paramnames])),
+              specific.start=specific_params,
+              tol=1e-180,
+              Nmif=opt.global.search.nmif)
+    
+          ll <-
+            replicate(
+              opt.global.search.nrep,
+              logLik(pfilter(mf,Np=opt.global.search.np)))
+          
+          ll <- logmeanexp(ll,se=TRUE)
+          
+          c(coef(mf)$shared,delta.loglik=(ll[1]-guess$loglik), loglik=ll[1],loglik=ll[2])
+        })
       }
     )
-  for (i in 1:nrow(results_global)){
-    guess.row <- which.min(abs(guesses[,'b'] - results_global[i,'b']))
-    guesses[guess.row,row.names] <- results_global[i,row.names]
+  good.results <- do.call(rbind, results_global[!sapply(results_global, is, "try-error")])
+  bad.results <- results_global[sapply(results_global, is, "try-error")]
+  
+  for (r in bad.results){
+    print(attr(r, 'condition'))
+  }
+  
+  for (i in 1:nrow(good.results)){
+    guess.row <- which.min(abs(guesses[,'b'] - good.results[i,'b']))
+    guesses[guess.row,row.names] <- good.results[i,row.names]
   }
   
   write.csv(guesses, './results_global.csv', row.names=FALSE)
