@@ -33,7 +33,7 @@ cpa_list = seq(0.1, 0.2, by=0.01)
 points = data.frame(cpa=double(), A=double())
 
 for (cpa in cpa_list) {
-
+  
   p["cpa_force"] <- cpa
   model <- pomp(model, params = p)
   
@@ -48,8 +48,8 @@ for (cpa in cpa_list) {
 ggplot(points, aes(x=cpa, y=A)) + geom_point()
 
 
-p["cpa_force"] <- 0.00
+p["cpa_force"] <- 0.20
 model <- model <- pomp(model, params = p)
-model %>% simulate(times = seq(from=0,to=1000, by=2)) %>% as.data.frame() %>% aggregate() %>%
-  melt(id='t') %>% ggplot(aes(x=t, y=value, colour=variable)) + geom_line() + facet_grid(variable~., scales="free")
+model %>% trajectory(times = seq(from=0,to=20, by=1), as.data.frame = TRUE) %>% aggregate() %>%
+  melt(id='t') %>% ggplot(aes(x=t, y=value, colour=variable)) + geom_point() + facet_grid(variable~., scales="free")
 
