@@ -5,12 +5,12 @@ library(magrittr)
 
 list(b=10.45,mu_L=0.2,mu_A=0.007629,
      cel=0.01731,cea=0.01310,cpa=0.004619,
-     sigma_1=1.621,sigma_2=0.7375,sigma_3=0.01212) -> theta
+     sigma_1=2.332,sigma_2=0.2374,sigma_3=0.0) -> theta
 
 read.csv("./data/data.csv") -> dat
 
 dat %>%
-  subset(rep==4,select=-c(cpa)) %>%
+  subset(rep==5,select=-c(cpa)) %>%
   mutate(
     mean_L=with(theta,b * A_obs * exp(-cel*L_obs - cea*A_obs)),
     mean_P=with(theta,L_obs * (1 - mu_L)),
@@ -27,10 +27,10 @@ dat %>%
     res_A=sqrt(A_obs)-sqrt(mean_A)
   ) %>%
   mutate(
-    loglikL=with(theta,dnorm(res_L,mean=0,sd=sigma_1,log=TRUE)),
-    loglikP=with(theta,dnorm(res_P,mean=0,sd=sigma_2,log=TRUE)),
-    loglikA=with(theta,dnorm(res_A,mean=0,sd=sigma_3,log=TRUE))
+    loglikL=with(theta,dnorm(res_L,mean=0,sd=sqrt(sigma_1),log=TRUE)),
+    loglikP=with(theta,dnorm(res_P,mean=0,sd=sqrt(sigma_2),log=TRUE)),
+    loglikA=with(theta,dnorm(res_A,mean=0,sd=sqrt(sigma_3),log=TRUE))
   ) %>%
   summarize(
-    loglik=sum(c(loglikL,loglikP,loglikA),na.rm=TRUE)
+    loglik=sum(c(loglikL,loglikP),na.rm=TRUE)
   )
