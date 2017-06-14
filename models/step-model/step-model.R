@@ -26,11 +26,11 @@ step.model <- function(data, params, statenames, paramnames, globals,
       )
   }
   
-  if (missing(skeleton)) {
-    skeleton <- map(Csnippet(
-        readChar('./models/step-model/skeleton.c', nchars=1e7)),
-      delta.t = delta.t)
-  }
+  #if (missing(skeleton)) {
+  #  skeleton <- map(Csnippet(
+  #      readChar('./models/step-model/skeleton.c', nchars=1e7)),
+  #    delta.t = delta.t)
+  #}
 
   if (missing(globals)) {
     globals <- Csnippet(
@@ -86,7 +86,9 @@ step.model <- function(data, params, statenames, paramnames, globals,
     globals = globals,
     initializer = initializer,
     rprocess = rprocess,
-    skeleton = skeleton,
+    skeleton = map(Csnippet(
+      readChar('./models/step-model/skeleton.c', nchars=1e7)),
+      delta.t = delta.t),
     dmeasure = dmeasure,
     rmeasure = rmeasure,
     toEstimationScale   = toEstimationScale,
